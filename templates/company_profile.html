@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Company Profile - Placement Portal{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="bi bi-building"></i> Company Profile
+            </h1>
+            
+            {% if profile %}
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">{{ profile.company_name }}</h5>
+                    <p class="card-text">
+                        <strong>Industry:</strong> {{ profile.industry }}<br>
+                        <strong>Description:</strong> {{ profile.description or 'Not provided' }}<br>
+                        <strong>Website:</strong> {% if profile.website %}<a href="{{ profile.website }}" target="_blank">{{ profile.website }}</a>{% else %}Not provided{% endif %}<br>
+                        <strong>Contact Person:</strong> {{ profile.contact_person or 'Not provided' }}<br>
+                        <strong>Contact Email:</strong> {{ profile.contact_email or 'Not provided' }}<br>
+                        <strong>Contact Phone:</strong> {{ profile.contact_phone or 'Not provided' }}
+                    </p>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> You haven't created your company profile yet. 
+                Please complete your profile to post job opportunities.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

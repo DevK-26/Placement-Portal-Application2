@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Student Profile - Placement Portal{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="bi bi-person-fill"></i> Student Profile
+            </h1>
+            
+            {% if profile %}
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">{{ profile.full_name }}</h5>
+                    <p class="card-text">
+                        <strong>Roll Number:</strong> {{ profile.roll_number }}<br>
+                        <strong>Branch:</strong> {{ profile.branch }}<br>
+                        <strong>CGPA:</strong> {{ profile.cgpa }}<br>
+                        <strong>Phone:</strong> {{ profile.phone or 'Not provided' }}<br>
+                        {% if profile.resume_path %}
+                        <strong>Resume:</strong> {{ profile.resume_path }}
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> You haven't created your profile yet. 
+                Please complete your profile to apply for jobs.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

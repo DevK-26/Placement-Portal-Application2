@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Placement Portal{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </h1>
+            
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Welcome, {{ current_user.username }}!</h5>
+                    <p class="card-text">
+                        You are logged in as: <span class="badge bg-primary">{{ current_user.role }}</span>
+                    </p>
+                    <p class="card-text">
+                        <small class="text-muted">Account created: {{ current_user.created_at.strftime('%B %d, %Y') }}</small>
+                    </p>
+                    
+                    <hr>
+                    
+                    {% if current_user.role == 'admin' %}
+                        <h6>Quick Actions:</h6>
+                        <a href="{{ url_for('admin_panel') }}" class="btn btn-primary">
+                            <i class="bi bi-gear-fill"></i> Go to Admin Panel
+                        </a>
+                    {% elif current_user.role == 'student' %}
+                        <h6>Quick Actions:</h6>
+                        <a href="{{ url_for('student_profile') }}" class="btn btn-primary">
+                            <i class="bi bi-person-fill"></i> View Profile
+                        </a>
+                    {% elif current_user.role == 'company' %}
+                        <h6>Quick Actions:</h6>
+                        <a href="{{ url_for('company_profile') }}" class="btn btn-primary">
+                            <i class="bi bi-building"></i> View Company Profile
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

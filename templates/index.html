@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Placement Portal{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Jumbotron -->
+    <div class="jumbotron-gradient text-white text-center py-5 rounded-3 my-5">
+        <h1 class="display-4 fw-bold">Welcome to Placement Portal</h1>
+        <p class="lead">Connecting Students with Career Opportunities</p>
+        <hr class="my-4 bg-white">
+        <p>A comprehensive platform for managing campus placements, job postings, and applications.</p>
+        <div class="d-flex gap-3 justify-content-center mt-4">
+            {% if current_user.is_authenticated %}
+                <a class="btn btn-light btn-lg" href="{{ url_for('dashboard') }}" role="button">
+                    <i class="bi bi-speedometer2"></i> Go to Dashboard
+                </a>
+            {% else %}
+                <a class="btn btn-light btn-lg" href="{{ url_for('register') }}" role="button">
+                    <i class="bi bi-person-plus-fill"></i> Get Started
+                </a>
+                <a class="btn btn-outline-light btn-lg" href="{{ url_for('login') }}" role="button">
+                    <i class="bi bi-box-arrow-in-right"></i> Login
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Feature Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm hover-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-mortarboard-fill text-primary" style="font-size: 3rem;"></i>
+                    <h5 class="card-title mt-3">For Students</h5>
+                    <p class="card-text">
+                        Browse job opportunities, apply to positions, track your applications, 
+                        and manage your profile all in one place.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm hover-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-building text-success" style="font-size: 3rem;"></i>
+                    <h5 class="card-title mt-3">For Companies</h5>
+                    <p class="card-text">
+                        Post job openings, review applications, shortlist candidates, 
+                        and streamline your recruitment process.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm hover-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-gear-fill text-warning" style="font-size: 3rem;"></i>
+                    <h5 class="card-title mt-3">For Administrators</h5>
+                    <p class="card-text">
+                        Manage users, oversee placement activities, generate reports, 
+                        and ensure smooth operations of the portal.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
