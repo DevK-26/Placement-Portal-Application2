@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Create Drive - Placement Portal{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h1 class="mb-4">
+                <i class="bi bi-plus-circle"></i> Create Placement Drive
+            </h1>
+            
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('create_drive') }}">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Job Title *</label>
+                            <input type="text" class="form-control" id="title" name="title" 
+                                   required placeholder="e.g., Software Engineer">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Job Description *</label>
+                            <textarea class="form-control" id="description" name="description" 
+                                      rows="4" required placeholder="Describe the role and responsibilities"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="requirements" class="form-label">Requirements *</label>
+                            <textarea class="form-control" id="requirements" name="requirements" 
+                                      rows="4" required placeholder="Skills, qualifications, and experience required"></textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="salary" class="form-label">Salary/CTC</label>
+                                <input type="text" class="form-control" id="salary" name="salary" 
+                                       placeholder="e.g., 6-8 LPA">
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="location" class="form-label">Location *</label>
+                                <input type="text" class="form-control" id="location" name="location" 
+                                       required placeholder="e.g., Bangalore, Remote">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="job_type" class="form-label">Job Type *</label>
+                                <select class="form-select" id="job_type" name="job_type" required>
+                                    <option value="">Choose job type...</option>
+                                    <option value="Full-time">Full-time</option>
+                                    <option value="Part-time">Part-time</option>
+                                    <option value="Internship">Internship</option>
+                                    <option value="Contract">Contract</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="deadline" class="form-label">Application Deadline *</label>
+                                <input type="date" class="form-control" id="deadline" name="deadline" required>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info mt-3">
+                            <i class="bi bi-info-circle"></i> <strong>Note:</strong> Your drive will be submitted for admin approval before going live.
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="{{ url_for('company_dashboard') }}" class="btn btn-secondary">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> Create Drive
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

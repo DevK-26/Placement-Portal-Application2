@@ -301,5 +301,263 @@ def company_profile():
     profile = CompanyProfile.query.filter_by(user_id=current_user.id).first()
     return render_template('company_profile.html', profile=profile)
 
+@app.route('/company/dashboard')
+@company_required
+def company_dashboard():
+    """Company dashboard with statistics"""
+    profile = CompanyProfile.query.filter_by(user_id=current_user.id).first()
+    
+    if profile:
+        # Get company's drives statistics
+        total_drives = JobPosting.query.filter_by(company_id=profile.id).count()
+        active_drives = JobPosting.query.filter_by(company_id=profile.id, is_active=True).count()
+        approved_drives = JobPosting.query.filter_by(company_id=profile.id, is_approved=True).count()
+        pending_drives = JobPosting.query.filter_by(company_id=profile.id, is_approved=False).count()
+        
+        # Get total applications for company's drives
+        total_applications = db.session.query(Application).join(JobPosting).filter(
+            JobPosting.company_id == profile.id
+        ).count()
+        
+        # Get applications by status
+        pending_applications = db.session.query(Application).join(JobPosting).filter(
+            JobPosting.company_id == profile.id,
+            Application.status == 'pending'
+        ).count()
+        
+        shortlisted_applications = db.session.query(Application).join(JobPosting).filter(
+            JobPosting.company_id == profile.id,
+            Application.status == 'shortlisted'
+        ).count()
+        
+        stats = {
+            'total_drives': total_drives,
+            'active_drives': active_drives,
+            'approved_drives': approved_drives,
+            'pending_drives': pending_drives,
+            'total_applications': total_applications,
+            'pending_applications': pending_applications,
+            'shortlisted_applications': shortlisted_applications
+        }
+    else:
+        stats = {
+            'total_drives': 0,
+            'active_drives': 0,
+            'approved_drives': 0,
+            'pending_drives': 0,
+            'total_applications': 0,
+            'pending_applications': 0,
+            'shortlisted_applications': 0
+        }
+    
+    return render_template('company_dashboard.html', profile=profile, stats=stats)
+
+@app.route('/company/drive/create', methods=['GET', 'POST'])
+@company_required
+def create_drive():
+    """Create a new placement drive"""
+    profile = CompanyProfile.query.filter_by(user_id=current_user.id).first()
+    
+    if not profile:
+        flash('Please complete your company profile first.', 'warning')
+        return redirect(url_for('company_profile'))
+    
+    if not current_user.is_approved:
+        flash('Your company account needs admin approval before posting drives.', 'warning')
+        return redirect(url_for('company_dashboard'))
+    
+    if request.method == 'POST':
+        title = request.form.get('title')
+        description = request.form.get('description')
+        requirements = request.form.get('requirements')
+        salary = request.form.get('salary')
+        location = request.form.get('location')
+        job_type = request.form.get('job_type')
+        deadline_str = request.form.get('deadline')
+        
+        # Validation
+        if not all([title, description, requirements, location, job_type, deadline_str]):
+            flash('All required fields must be filled.', 'danger')
+            return render_template('create_drive.html', profile=profile)
+        
+        try:
+            from datetime import datetime
+            deadline = datetime.strptime(deadline_str, '%Y-%m-%d')
+            
+            # Create new drive
+            new_drive = JobPosting(
+                company_id=profile.id,
+                title=title,
+                description=description,
+                requirements=requirements,
+                salary=salary,
+                location=location,
+                job_type=job_type,
+                deadline=deadline,
+                is_active=True,
+                is_approved=False  # Requires admin approval
+            )
+            
+            db.session.add(new_drive)
+            db.session.commit()
+            
+            flash('Drive created successfully! Waiting for admin approval.', 'success')
+            return redirect(url_for('company_drives'))
+        except ValueError:
+            flash('Invalid date format.', 'danger')
+            return render_template('create_drive.html', profile=profile)
+    
+    return render_template('create_drive.html', profile=profile)
+
+@app.route('/company/drives')
+@company_required
+def company_drives():
+    """View all company drives"""
+    profile = CompanyProfile.query.filter_by(user_id=current_user.id).first()
+    
+    if profile:
+        drives = JobPosting.query.filter_by(company_id=profile.id).order_by(JobPosting.posted_at.desc()).all()
+    else:
+        drives = []
+    
+    return render_template('company_drives.html', profile=profile, drives=drives)
+
+@app.route('/company/drive/edit/<int:drive_id>', methods=['GET', 'POST'])
+@company_required
+def edit_drive(drive_id):
+    """Edit a placement drive"""
+    profile = CompanyProfile.query.filter_by(user_id=current_user.id).first()
+    drive = JobPosting.query.get_or_404(drive_id)
+    
+    # Check ownership
+    if drive.company_id != profile.id:
+        flash('You do not have permission to edit this drive.', 'danger')
+        return redirect(url_for('company_drives'))
+    
+    if request.method == 'POST':
+        drive.title = request.form.get('title')
+        drive.description = request.form.get('description')
+        drive.requirements = request.form.get('requirements')
+        drive.salary = request.form.get('salary')
+        drive.location = request.form.get('location')
+        drive.job_type = request.form.get('job_type')
+        deadline_str = request.form.get('deadline')
+        
+        try:
+            from datetime import datetime
+            drive.deadline = datetime.strptime(deadline_str, '%Y-%m-%d')
+            
+            db.session.commit()
+            flash('Drive updated successfully!', 'success')
+            return redirect(url_for('company_drives'))
+        except ValueError:
+            flash('Invalid date format.', 'danger')
+    
+    return render_template('edit_drive.html', profile=profile, drive=drive)
+
+@app.route('/company/drive/delete/<int:drive_id>')
+@company_required
+def delete_drive(drive_id):
+    """Delete a placement drive"""
+    profile = CompanyProfile.query.filter_by(user_id=current_user.id).first()
+    drive = JobPosting.query.get_or_404(drive_id)
+    
+    # Check ownership
+    if drive.company_id != profile.id:
+        flash('You do not have permission to delete this drive.', 'danger')
+        return redirect(url_for('company_drives'))
+    
+    db.session.delete(drive)
+    db.session.commit()
+    flash('Drive deleted successfully!', 'success')
+    return redirect(url_for('company_drives'))
+
+@app.route('/company/drive/toggle/<int:drive_id>')
+@company_required
+def toggle_drive(drive_id):
+    """Close/Open a placement drive"""
+    profile = CompanyProfile.query.filter_by(user_id=current_user.id).first()
+    drive = JobPosting.query.get_or_404(drive_id)
+    
+    # Check ownership
+    if drive.company_id != profile.id:
+        flash('You do not have permission to modify this drive.', 'danger')
+        return redirect(url_for('company_drives'))
+    
+    drive.is_active = not drive.is_active
+    db.session.commit()
+    
+    status = 'opened' if drive.is_active else 'closed'
+    flash(f'Drive "{drive.title}" {status} successfully!', 'success')
+    return redirect(url_for('company_drives'))
+
+@app.route('/company/drive/<int:drive_id>/applicants')
+@company_required
+def view_applicants(drive_id):
+    """View applicants for a specific drive"""
+    profile = CompanyProfile.query.filter_by(user_id=current_user.id).first()
+    drive = JobPosting.query.get_or_404(drive_id)
+    
+    # Check ownership
+    if drive.company_id != profile.id:
+        flash('You do not have permission to view these applicants.', 'danger')
+        return redirect(url_for('company_drives'))
+    
+    # Get all applications for this drive with student details
+    applications = Application.query.filter_by(job_id=drive_id).order_by(Application.applied_at.desc()).all()
+    
+    return render_template('view_applicants.html', profile=profile, drive=drive, applications=applications)
+
+@app.route('/company/application/<int:application_id>/update-status', methods=['POST'])
+@company_required
+def update_application_status(application_id):
+    """Update application status"""
+    profile = CompanyProfile.query.filter_by(user_id=current_user.id).first()
+    application = Application.query.get_or_404(application_id)
+    
+    # Check ownership through drive
+    if application.job.company_id != profile.id:
+        flash('You do not have permission to update this application.', 'danger')
+        return redirect(url_for('company_drives'))
+    
+    new_status = request.form.get('status')
+    if new_status in ['pending', 'reviewed', 'shortlisted', 'rejected', 'accepted']:
+        application.status = new_status
+        db.session.commit()
+        flash(f'Application status updated to {new_status}.', 'success')
+    else:
+        flash('Invalid status.', 'danger')
+    
+    return redirect(url_for('view_applicants', drive_id=application.job_id))
+
+@app.route('/company/drive/<int:drive_id>/shortlist', methods=['POST'])
+@company_required
+def shortlist_applicants(drive_id):
+    """Shortlist multiple applicants"""
+    profile = CompanyProfile.query.filter_by(user_id=current_user.id).first()
+    drive = JobPosting.query.get_or_404(drive_id)
+    
+    # Check ownership
+    if drive.company_id != profile.id:
+        flash('You do not have permission to modify these applications.', 'danger')
+        return redirect(url_for('company_drives'))
+    
+    application_ids = request.form.getlist('application_ids')
+    
+    if application_ids:
+        count = 0
+        for app_id in application_ids:
+            application = Application.query.get(int(app_id))
+            if application and application.job_id == drive_id:
+                application.status = 'shortlisted'
+                count += 1
+        
+        db.session.commit()
+        flash(f'{count} applicant(s) shortlisted successfully!', 'success')
+    else:
+        flash('No applicants selected.', 'warning')
+    
+    return redirect(url_for('view_applicants', drive_id=drive_id))
+
 if __name__ == '__main__':
     app.run(debug=True)

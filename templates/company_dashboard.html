@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Company Dashboard - Placement Portal{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="bi bi-building"></i> Company Dashboard
+            </h1>
+            
+            {% if not profile %}
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle"></i> Please complete your company profile to start posting drives.
+                <a href="{{ url_for('company_profile') }}" class="btn btn-sm btn-primary ms-3">Complete Profile</a>
+            </div>
+            {% elif not current_user.is_approved %}
+            <div class="alert alert-info">
+                <i class="bi bi-clock-history"></i> Your company account is pending admin approval. You'll be able to post drives once approved.
+            </div>
+            {% endif %}
+            
+            <!-- Statistics Cards -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-3">
+                    <div class="card shadow-sm text-center">
+                        <div class="card-body">
+                            <i class="bi bi-briefcase-fill text-primary" style="font-size: 2rem;"></i>
+                            <h3 class="mt-2">{{ stats.total_drives }}</h3>
+                            <p class="text-muted mb-0">Total Drives</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="card shadow-sm text-center">
+                        <div class="card-body">
+                            <i class="bi bi-check-circle-fill text-success" style="font-size: 2rem;"></i>
+                            <h3 class="mt-2">{{ stats.active_drives }}</h3>
+                            <p class="text-muted mb-0">Active Drives</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="card shadow-sm text-center">
+                        <div class="card-body">
+                            <i class="bi bi-file-earmark-text-fill text-info" style="font-size: 2rem;"></i>
+                            <h3 class="mt-2">{{ stats.total_applications }}</h3>
+                            <p class="text-muted mb-0">Total Applications</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="card shadow-sm text-center">
+                        <div class="card-body">
+                            <i class="bi bi-star-fill text-warning" style="font-size: 2rem;"></i>
+                            <h3 class="mt-2">{{ stats.shortlisted_applications }}</h3>
+                            <p class="text-muted mb-0">Shortlisted</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pending Approvals -->
+            {% if stats.pending_drives > 0 %}
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-clock-history"></i> Pending Drive Approvals
+                            </h5>
+                            <h2 class="text-warning">{{ stats.pending_drives }}</h2>
+                            <p class="text-muted">Waiting for admin approval</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-hourglass-split"></i> Pending Applications
+                            </h5>
+                            <h2 class="text-info">{{ stats.pending_applications }}</h2>
+                            <p class="text-muted">New applications to review</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Quick Actions -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('create_drive') }}" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-plus-circle"></i><br>
+                                Create Drive
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('company_drives') }}" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-list-ul"></i><br>
+                                Manage Drives
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('company_profile') }}" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-building"></i><br>
+                                Company Profile
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('company_drives') }}" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-people-fill"></i><br>
+                                View Applicants
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

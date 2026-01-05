@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Drives - Placement Portal{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>
+                    <i class="bi bi-briefcase-fill"></i> My Drives
+                </h1>
+                <a href="{{ url_for('create_drive') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Create New Drive
+                </a>
+            </div>
+            
+            {% if drives %}
+            <div class="row g-4">
+                {% for drive in drives %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title">{{ drive.title }}</h5>
+                                <div>
+                                    {% if drive.is_approved %}
+                                        <span class="badge bg-success">Approved</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% endif %}
+                                    {% if drive.is_active %}
+                                        <span class="badge bg-info">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Closed</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <p class="card-text text-muted small">
+                                <i class="bi bi-geo-alt"></i> {{ drive.location }}<br>
+                                <i class="bi bi-briefcase"></i> {{ drive.job_type }}<br>
+                                <i class="bi bi-calendar"></i> Deadline: {{ drive.deadline.strftime('%Y-%m-%d') }}<br>
+                                <i class="bi bi-clock"></i> Posted: {{ drive.posted_at.strftime('%Y-%m-%d') }}
+                            </p>
+                            
+                            {% if drive.salary %}
+                            <p class="card-text">
+                                <i class="bi bi-cash"></i> <strong>{{ drive.salary }}</strong>
+                            </p>
+                            {% endif %}
+                            
+                            <hr>
+                            
+                            <div class="btn-group w-100" role="group">
+                                <a href="{{ url_for('view_applicants', drive_id=drive.id) }}" 
+                                   class="btn btn-sm btn-outline-primary" title="View Applicants">
+                                    <i class="bi bi-people"></i>
+                                </a>
+                                <a href="{{ url_for('edit_drive', drive_id=drive.id) }}" 
+                                   class="btn btn-sm btn-outline-secondary" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{{ url_for('toggle_drive', drive_id=drive.id) }}" 
+                                   class="btn btn-sm btn-outline-{% if drive.is_active %}warning{% else %}success{% endif %}" 
+                                   title="{% if drive.is_active %}Close{% else %}Open{% endif %}">
+                                    <i class="bi bi-{% if drive.is_active %}pause-circle{% else %}play-circle{% endif %}"></i>
+                                </a>
+                                <a href="{{ url_for('delete_drive', drive_id=drive.id) }}" 
+                                   class="btn btn-sm btn-outline-danger" 
+                                   onclick="return confirm('Are you sure you want to delete this drive?')" 
+                                   title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="alert alert-info text-center">
+                <i class="bi bi-info-circle"></i> You haven't created any drives yet.
+                <a href="{{ url_for('create_drive') }}" class="btn btn-primary ms-3">
+                    <i class="bi bi-plus-circle"></i> Create Your First Drive
+                </a>
+            </div>
+            {% endif %}
+            
+            <div class="mt-4">
+                <a href="{{ url_for('company_dashboard') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
