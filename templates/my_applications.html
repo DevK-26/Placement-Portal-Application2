@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}My Applications - Placement Portal{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="bi bi-file-earmark-text-fill"></i> My Applications
+            </h1>
+            
+            {% if applications %}
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">All Applications ({{ applications|length }})</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Job Title</th>
+                                    <th>Company</th>
+                                    <th>Applied On</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for application in applications %}
+                                <tr>
+                                    <td>{{ application.job.title }}</td>
+                                    <td>{{ application.job.company.company_name }}</td>
+                                    <td>{{ application.applied_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>
+                                        {% if application.status == 'pending' %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% elif application.status == 'reviewed' %}
+                                            <span class="badge bg-info">Reviewed</span>
+                                        {% elif application.status == 'shortlisted' %}
+                                            <span class="badge bg-primary">Shortlisted</span>
+                                        {% elif application.status == 'rejected' %}
+                                            <span class="badge bg-danger">Rejected</span>
+                                        {% elif application.status == 'accepted' %}
+                                            <span class="badge bg-success">Accepted</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('view_application', application_id=application.id) }}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                        <a href="{{ url_for('view_drive_details', drive_id=application.job_id) }}" 
+                                           class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-briefcase"></i> Job Details
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-info text-center">
+                <i class="bi bi-info-circle"></i> You haven't applied to any drives yet.
+                <a href="{{ url_for('browse_drives') }}" class="btn btn-primary ms-3">
+                    <i class="bi bi-search"></i> Browse Available Drives
+                </a>
+            </div>
+            {% endif %}
+            
+            <div class="mt-4">
+                <a href="{{ url_for('student_dashboard') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

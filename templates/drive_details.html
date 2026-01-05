@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}{{ drive.title }} - Placement Portal{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                {{ drive.title }}
+            </h1>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h4 class="text-primary">{{ drive.company.company_name }}</h4>
+                            <p class="text-muted">{{ drive.company.industry }}</p>
+                            
+                            {% if existing_application %}
+                            <div class="alert alert-success">
+                                <i class="bi bi-check-circle"></i> You have already applied to this drive.
+                                <br><small>Status: <strong>{{ existing_application.status }}</strong></small>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            {% if not existing_application %}
+                            <a href="{{ url_for('apply_to_drive', drive_id=drive.id) }}" class="btn btn-primary btn-lg">
+                                <i class="bi bi-send"></i> Apply Now
+                            </a>
+                            {% else %}
+                            <a href="{{ url_for('view_application', application_id=existing_application.id) }}" 
+                               class="btn btn-success btn-lg">
+                                <i class="bi bi-eye"></i> View Application
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Job Description</h5>
+                        </div>
+                        <div class="card-body">
+                            <p style="white-space: pre-wrap;">{{ drive.description }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Requirements</h5>
+                        </div>
+                        <div class="card-body">
+                            <p style="white-space: pre-wrap;">{{ drive.requirements }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Job Details</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Job Type:</strong><br>{{ drive.job_type }}</p>
+                            <p><strong>Location:</strong><br>{{ drive.location }}</p>
+                            {% if drive.salary %}
+                            <p><strong>Salary/CTC:</strong><br>{{ drive.salary }}</p>
+                            {% endif %}
+                            <p><strong>Posted On:</strong><br>{{ drive.posted_at.strftime('%Y-%m-%d') }}</p>
+                            <p><strong>Deadline:</strong><br>
+                                <span class="text-danger">{{ drive.deadline.strftime('%Y-%m-%d') }}</span>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">Company Info</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Industry:</strong><br>{{ drive.company.industry }}</p>
+                            {% if drive.company.website %}
+                            <p><strong>Website:</strong><br>
+                                <a href="{{ drive.company.website }}" target="_blank">{{ drive.company.website }}</a>
+                            </p>
+                            {% endif %}
+                            {% if drive.company.description %}
+                            <p><strong>About:</strong><br>{{ drive.company.description[:150] }}...</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <a href="{{ url_for('browse_drives') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Drives
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

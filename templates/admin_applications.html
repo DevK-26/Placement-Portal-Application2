@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}View Applications - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="bi bi-file-earmark-text-fill"></i> All Applications
+            </h1>
+            
+            <!-- Applications Table -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Applications Overview ({{ applications|length }})</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Student</th>
+                                    <th>Job Title</th>
+                                    <th>Company</th>
+                                    <th>Applied At</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for application in applications %}
+                                <tr>
+                                    <td>{{ application.id }}</td>
+                                    <td>{{ application.user.username }}</td>
+                                    <td>{{ application.job.title }}</td>
+                                    <td>{{ application.job.company.company_name }}</td>
+                                    <td>{{ application.applied_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>
+                                        {% if application.status == 'pending' %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% elif application.status == 'reviewed' %}
+                                            <span class="badge bg-info">Reviewed</span>
+                                        {% elif application.status == 'shortlisted' %}
+                                            <span class="badge bg-primary">Shortlisted</span>
+                                        {% elif application.status == 'rejected' %}
+                                            <span class="badge bg-danger">Rejected</span>
+                                        {% elif application.status == 'accepted' %}
+                                            <span class="badge bg-success">Accepted</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">No applications found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-3">
+                <a href="{{ url_for('admin_panel') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

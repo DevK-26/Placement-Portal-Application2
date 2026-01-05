@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Panel - Placement Portal{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="bi bi-gear-fill"></i> Admin Dashboard
+            </h1>
+            
+            <!-- Statistics Cards -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-3">
+                    <div class="card shadow-sm text-center">
+                        <div class="card-body">
+                            <i class="bi bi-people-fill text-primary" style="font-size: 2rem;"></i>
+                            <h3 class="mt-2">{{ stats.total_users }}</h3>
+                            <p class="text-muted mb-0">Total Users</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="card shadow-sm text-center">
+                        <div class="card-body">
+                            <i class="bi bi-mortarboard-fill text-success" style="font-size: 2rem;"></i>
+                            <h3 class="mt-2">{{ stats.total_students }}</h3>
+                            <p class="text-muted mb-0">Students</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="card shadow-sm text-center">
+                        <div class="card-body">
+                            <i class="bi bi-building text-info" style="font-size: 2rem;"></i>
+                            <h3 class="mt-2">{{ stats.total_companies }}</h3>
+                            <p class="text-muted mb-0">Companies</p>
+                            <small class="text-success">{{ stats.approved_companies }} approved</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="card shadow-sm text-center">
+                        <div class="card-body">
+                            <i class="bi bi-briefcase-fill text-warning" style="font-size: 2rem;"></i>
+                            <h3 class="mt-2">{{ stats.total_drives }}</h3>
+                            <p class="text-muted mb-0">Drives</p>
+                            <small class="text-success">{{ stats.approved_drives }} approved</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pending Approvals -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-clock-history"></i> Pending Company Approvals
+                            </h5>
+                            <h2 class="text-warning">{{ stats.pending_companies }}</h2>
+                            <a href="{{ url_for('admin_companies') }}" class="btn btn-sm btn-primary">
+                                View Companies <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-clock-history"></i> Pending Drive Approvals
+                            </h5>
+                            <h2 class="text-warning">{{ stats.pending_drives }}</h2>
+                            <a href="{{ url_for('admin_drives') }}" class="btn btn-sm btn-primary">
+                                View Drives <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Links -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('admin_students') }}" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-mortarboard-fill"></i><br>
+                                Manage Students
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('admin_companies') }}" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-building"></i><br>
+                                Manage Companies
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('admin_drives') }}" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-briefcase-fill"></i><br>
+                                Manage Drives
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('admin_applications') }}" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-file-earmark-text-fill"></i><br>
+                                View Applications
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

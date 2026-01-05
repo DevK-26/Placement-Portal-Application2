@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Browse Drives - Placement Portal{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="bi bi-briefcase-fill"></i> Browse Placement Drives
+            </h1>
+            
+            <!-- Filters -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <form method="GET" action="{{ url_for('browse_drives') }}" class="row g-3">
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" name="search" 
+                                   placeholder="Search by title or company..." value="{{ search }}">
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" name="job_type">
+                                <option value="">All Job Types</option>
+                                <option value="Full-time" {% if job_type == 'Full-time' %}selected{% endif %}>Full-time</option>
+                                <option value="Part-time" {% if job_type == 'Part-time' %}selected{% endif %}>Part-time</option>
+                                <option value="Internship" {% if job_type == 'Internship' %}selected{% endif %}>Internship</option>
+                                <option value="Contract" {% if job_type == 'Contract' %}selected{% endif %}>Contract</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" class="form-control" name="location" 
+                                   placeholder="Location..." value="{{ location }}">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-search"></i> Filter
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Drives List -->
+            {% if drives %}
+            <div class="row g-4">
+                {% for drive in drives %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm {% if drive.id in applied_drive_ids %}border-success{% endif %}">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title">{{ drive.title }}</h5>
+                                {% if drive.id in applied_drive_ids %}
+                                    <span class="badge bg-success">Applied</span>
+                                {% else %}
+                                    <span class="badge bg-primary">Open</span>
+                                {% endif %}
+                            </div>
+                            
+                            <h6 class="text-primary">{{ drive.company.company_name }}</h6>
+                            
+                            <p class="card-text text-muted small">
+                                <i class="bi bi-geo-alt"></i> {{ drive.location }}<br>
+                                <i class="bi bi-briefcase"></i> {{ drive.job_type }}<br>
+                                <i class="bi bi-calendar"></i> Deadline: {{ drive.deadline.strftime('%Y-%m-%d') }}<br>
+                                {% if drive.salary %}
+                                <i class="bi bi-cash"></i> {{ drive.salary }}
+                                {% endif %}
+                            </p>
+                            
+                            <p class="card-text">
+                                {{ drive.description[:100] }}{% if drive.description|length > 100 %}...{% endif %}
+                            </p>
+                            
+                            <div class="d-grid gap-2">
+                                <a href="{{ url_for('view_drive_details', drive_id=drive.id) }}" 
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-eye"></i> View Details
+                                </a>
+                                {% if drive.id not in applied_drive_ids %}
+                                <a href="{{ url_for('apply_to_drive', drive_id=drive.id) }}" 
+                                   class="btn btn-primary btn-sm">
+                                    <i class="bi bi-send"></i> Apply Now
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="alert alert-info text-center">
+                <i class="bi bi-info-circle"></i> No drives available matching your criteria.
+            </div>
+            {% endif %}
+            
+            <div class="mt-4">
+                <a href="{{ url_for('student_dashboard') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

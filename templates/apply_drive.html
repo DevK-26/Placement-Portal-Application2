@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Apply to {{ drive.title }} - Placement Portal{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h1 class="mb-4">
+                <i class="bi bi-send"></i> Apply to Drive
+            </h1>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h4>{{ drive.title }}</h4>
+                    <p class="text-primary">{{ drive.company.company_name }}</p>
+                    <p class="text-muted">
+                        <i class="bi bi-geo-alt"></i> {{ drive.location }} | 
+                        <i class="bi bi-briefcase"></i> {{ drive.job_type }}
+                    </p>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('apply_to_drive', drive_id=drive.id) }}">
+                        <div class="mb-3">
+                            <label for="cover_letter" class="form-label">Cover Letter (Optional)</label>
+                            <textarea class="form-control" id="cover_letter" name="cover_letter" 
+                                      rows="8" maxlength="1000" placeholder="Write a brief cover letter explaining why you're a good fit for this position..."></textarea>
+                            <div class="form-text">This will help the company understand your interest and qualifications.</div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> <strong>Profile Information:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>Name: {{ profile.full_name }}</li>
+                                <li>Roll Number: {{ profile.roll_number }}</li>
+                                <li>Branch: {{ profile.branch }}</li>
+                                <li>CGPA: {{ profile.cgpa }}</li>
+                                <li>Phone: {{ profile.phone }}</li>
+                            </ul>
+                            <small>This information will be shared with the company. 
+                                <a href="{{ url_for('edit_student_profile') }}">Update profile</a> if needed.</small>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="{{ url_for('view_drive_details', drive_id=drive.id) }}" class="btn btn-secondary">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-send"></i> Submit Application
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
