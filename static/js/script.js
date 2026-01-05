@@ -1,5 +1,9 @@
 // Auto-dismiss alerts after 5 seconds
 document.addEventListener('DOMContentLoaded', function() {
+    // Constants
+    const PHONE_PATTERN = /^[0-9]{10}$/;
+    const FORM_SUBMIT_TIMEOUT = 3000; // 3 seconds
+    
     // Auto-dismiss alerts
     const alerts = document.querySelectorAll('.alert');
     alerts.forEach(function(alert) {
@@ -54,4 +58,97 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // CGPA validation for student profile
+    const cgpaInput = document.getElementById('cgpa');
+    if (cgpaInput) {
+        cgpaInput.addEventListener('input', function() {
+            const value = parseFloat(this.value);
+            if (value < 0 || value > 10) {
+                this.setCustomValidity('CGPA must be between 0 and 10');
+                this.classList.add('is-invalid');
+            } else {
+                this.setCustomValidity('');
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            }
+        });
+    }
+
+    // Phone number validation
+    const phoneInput = document.getElementById('phone');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function() {
+            if (!PHONE_PATTERN.test(this.value) && this.value.length > 0) {
+                this.setCustomValidity('Please enter a valid 10-digit phone number');
+                this.classList.add('is-invalid');
+            } else {
+                this.setCustomValidity('');
+                this.classList.remove('is-invalid');
+                if (this.value.length === 10) {
+                    this.classList.add('is-valid');
+                }
+            }
+        });
+    }
+
+    // Date validation for drive deadlines
+    const deadlineInput = document.getElementById('deadline');
+    if (deadlineInput) {
+        deadlineInput.addEventListener('change', function() {
+            const today = new Date().toISOString().split('T')[0];
+            if (this.value < today) {
+                alert('Deadline cannot be in the past');
+                this.value = today;
+            }
+        });
+        
+        // Set minimum date to today
+        const today = new Date().toISOString().split('T')[0];
+        deadlineInput.setAttribute('min', today);
+    }
+
+    // Confirmation dialogs for critical actions
+    const deleteLinks = document.querySelectorAll('[data-confirm]');
+    deleteLinks.forEach(function(link) {
+        link.addEventListener('click', function(event) {
+            const message = this.getAttribute('data-confirm') || 'Are you sure?';
+            if (!confirm(message)) {
+                event.preventDefault();
+            }
+        });
+    });
+
+    // Form submission loading state
+    const forms = document.querySelectorAll('form');
+    forms.forEach(function(form) {
+        form.addEventListener('submit', function() {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+                
+                // Re-enable after timeout in case of validation errors
+                setTimeout(function() {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                }, FORM_SUBMIT_TIMEOUT);
+            }
+        });
+    });
+
+    // Character counter for textareas
+    const textareas = document.querySelectorAll('textarea[maxlength]');
+    textareas.forEach(function(textarea) {
+        const maxLength = textarea.getAttribute('maxlength');
+        const counter = document.createElement('div');
+        counter.className = 'form-text text-end';
+        counter.innerHTML = `<span id="${textarea.id}_count">0</span> / ${maxLength} characters`;
+        textarea.parentNode.appendChild(counter);
+        
+        textarea.addEventListener('input', function() {
+            document.getElementById(`${this.id}_count`).textContent = this.value.length;
+        });
+    });
 });

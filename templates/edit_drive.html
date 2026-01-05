@@ -16,19 +16,19 @@
                         <div class="mb-3">
                             <label for="title" class="form-label">Job Title *</label>
                             <input type="text" class="form-control" id="title" name="title" 
-                                   required value="{{ drive.title }}">
+                                   required maxlength="200" value="{{ drive.title }}">
                         </div>
                         
                         <div class="mb-3">
                             <label for="description" class="form-label">Job Description *</label>
                             <textarea class="form-control" id="description" name="description" 
-                                      rows="4" required>{{ drive.description }}</textarea>
+                                      rows="4" required maxlength="2000">{{ drive.description }}</textarea>
                         </div>
                         
                         <div class="mb-3">
                             <label for="requirements" class="form-label">Requirements *</label>
                             <textarea class="form-control" id="requirements" name="requirements" 
-                                      rows="4" required>{{ drive.requirements }}</textarea>
+                                      rows="4" required maxlength="2000">{{ drive.requirements }}</textarea>
                         </div>
                         
                         <div class="row">

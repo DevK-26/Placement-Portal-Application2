@@ -3,6 +3,7 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import or_
 from datetime import datetime
+import re
 from config import Config
 from models import db, User, StudentProfile, CompanyProfile, JobPosting, Application
 from decorators import admin_required, student_required, company_required
@@ -348,6 +349,11 @@ def edit_student_profile():
             flash('All fields are required.', 'danger')
             return render_template('edit_student_profile.html', profile=profile)
         
+        # Validate phone number (10 digits)
+        if not re.match(r'^\d{10}$', phone):
+            flash('Phone number must be exactly 10 digits.', 'danger')
+            return render_template('edit_student_profile.html', profile=profile)
+        
         try:
             cgpa_float = float(cgpa)
             if cgpa_float < 0 or cgpa_float > 10:
@@ -473,6 +479,11 @@ def apply_to_drive(drive_id):
     
     if request.method == 'POST':
         cover_letter = request.form.get('cover_letter', '')
+        
+        # Validate cover letter length
+        if len(cover_letter) > 1000:
+            flash('Cover letter must not exceed 1000 characters.', 'danger')
+            return render_template('apply_drive.html', profile=profile, drive=drive)
         
         # Create new application
         new_application = Application(
@@ -613,8 +624,22 @@ def create_drive():
             flash('All required fields must be filled.', 'danger')
             return render_template('create_drive.html', profile=profile)
         
+        # Validate length limits
+        if len(title) > 200:
+            flash('Job title must not exceed 200 characters.', 'danger')
+            return render_template('create_drive.html', profile=profile)
+        
+        if len(description) > 2000 or len(requirements) > 2000:
+            flash('Description and requirements must not exceed 2000 characters each.', 'danger')
+            return render_template('create_drive.html', profile=profile)
+        
         try:
             deadline = datetime.strptime(deadline_str, '%Y-%m-%d')
+            
+            # Check if deadline is in the future
+            if deadline.date() < datetime.now().date():
+                flash('Deadline cannot be in the past.', 'danger')
+                return render_template('create_drive.html', profile=profile)
             
             # Create new drive
             new_drive = JobPosting(
@@ -667,16 +692,44 @@ def edit_drive(drive_id):
         return redirect(url_for('company_drives'))
     
     if request.method == 'POST':
-        drive.title = request.form.get('title')
-        drive.description = request.form.get('description')
-        drive.requirements = request.form.get('requirements')
-        drive.salary = request.form.get('salary')
-        drive.location = request.form.get('location')
-        drive.job_type = request.form.get('job_type')
+        title = request.form.get('title')
+        description = request.form.get('description')
+        requirements = request.form.get('requirements')
+        salary = request.form.get('salary')
+        location = request.form.get('location')
+        job_type = request.form.get('job_type')
         deadline_str = request.form.get('deadline')
         
+        # Validation
+        if not all([title, description, requirements, location, job_type, deadline_str]):
+            flash('All required fields must be filled.', 'danger')
+            return render_template('edit_drive.html', profile=profile, drive=drive)
+        
+        # Validate length limits
+        if len(title) > 200:
+            flash('Job title must not exceed 200 characters.', 'danger')
+            return render_template('edit_drive.html', profile=profile, drive=drive)
+        
+        if len(description) > 2000 or len(requirements) > 2000:
+            flash('Description and requirements must not exceed 2000 characters each.', 'danger')
+            return render_template('edit_drive.html', profile=profile, drive=drive)
+        
         try:
-            drive.deadline = datetime.strptime(deadline_str, '%Y-%m-%d')
+            new_deadline = datetime.strptime(deadline_str, '%Y-%m-%d')
+            
+            # Check if deadline is in the future
+            if new_deadline.date() < datetime.now().date():
+                flash('Deadline cannot be in the past.', 'danger')
+                return render_template('edit_drive.html', profile=profile, drive=drive)
+            
+            # Update drive
+            drive.title = title
+            drive.description = description
+            drive.requirements = requirements
+            drive.salary = salary
+            drive.location = location
+            drive.job_type = job_type
+            drive.deadline = new_deadline
             
             db.session.commit()
             flash('Drive updated successfully!', 'success')
