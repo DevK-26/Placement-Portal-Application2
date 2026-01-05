@@ -6,6 +6,10 @@ A comprehensive Flask-based web application for managing campus placements, job 
 
 This phase implements the complete authentication system with role-based access control.
 
+## Phase 2: Admin Module Implementation ✅
+
+This phase implements the complete admin dashboard with statistics, approval systems, search functionality, and user management.
+
 ## Features
 
 ### Authentication & Authorization
@@ -16,11 +20,19 @@ This phase implements the complete authentication system with role-based access 
 - ✅ Role-based access control (Admin, Student, Company)
 - ✅ Protected routes with decorators
 
+### Admin Module (Phase 2)
+- ✅ **Dashboard with Statistics:** Real-time counts of users, students, companies, drives, and applications
+- ✅ **Company Approval System:** Approve/reject company registrations
+- ✅ **Drive Approval System:** Approve/reject job postings (drives)
+- ✅ **Search Functionality:** Search students, companies, and drives
+- ✅ **Blacklist/Deactivate:** Toggle user active status
+- ✅ **Entity Management:** View and manage all students, companies, drives, and applications
+
 ### Database Models
-- ✅ User model with authentication
+- ✅ User model with authentication, approval, and active status
 - ✅ Student profile management
 - ✅ Company profile management
-- ✅ Job posting system
+- ✅ Job posting system with approval workflow
 - ✅ Application tracking
 
 ### User Interface
@@ -29,6 +41,9 @@ This phase implements the complete authentication system with role-based access 
 - ✅ Flash messaging system
 - ✅ Form validation (client & server-side)
 - ✅ Role-specific dashboards
+- ✅ Statistics cards with visual indicators
+- ✅ Search forms with placeholders
+- ✅ Status badges (Active/Blacklisted, Approved/Pending)
 
 ## Tech Stack
 
@@ -99,9 +114,13 @@ Placement-Portal-Application2/
 │   ├── login.html       # Login page
 │   ├── register.html    # Registration page
 │   ├── dashboard.html   # User dashboard
-│   ├── admin.html       # Admin panel
-│   ├── student_profile.html   # Student profile
-│   └── company_profile.html   # Company profile
+│   ├── admin.html              # Admin dashboard
+│   ├── admin_companies.html    # Company management
+│   ├── admin_students.html     # Student management
+│   ├── admin_drives.html       # Drive management
+│   ├── admin_applications.html # Applications view
+│   ├── student_profile.html    # Student profile
+│   └── company_profile.html    # Company profile
 └── static/              # Static assets
     ├── css/
     │   └── style.css    # Custom styles
@@ -112,9 +131,24 @@ Placement-Portal-Application2/
 ## Usage
 
 ### Admin User
-1. Login with admin credentials
-2. Access Admin Panel to view all users
-3. Manage system-wide settings
+1. Login with admin credentials (username: `admin`, password: `admin123`)
+2. Access Admin Dashboard to view statistics
+3. **Manage Companies:**
+   - View all registered companies
+   - Approve/reject company registrations
+   - Search companies by name, industry, or email
+   - Blacklist/activate companies
+4. **Manage Students:**
+   - View all registered students
+   - Search students by name, roll number, or branch
+   - Blacklist/activate students
+5. **Manage Drives (Job Postings):**
+   - View all job postings
+   - Approve/reject drives
+   - Search drives by title, location, or company
+6. **View Applications:**
+   - Monitor all job applications
+   - Track application status
 
 ### Student Registration
 1. Click "Register" on the homepage
@@ -128,7 +162,7 @@ Placement-Portal-Application2/
 2. Fill in username, email, password
 3. Select "Company" as role
 4. After registration, login with credentials
-5. Access company-specific features
+5. **Note:** Company account requires admin approval before posting jobs
 
 ## Security Features
 
@@ -140,7 +174,7 @@ Placement-Portal-Application2/
 - ✅ CSRF protection ready (use Flask-WTF for forms in production)
 
 ### Security Notes
-⚠️ **Development Setup:** This is Phase 1 development setup. For production deployment:
+⚠️ **Development Setup:** This is Phase 1 & 2 development setup. For production deployment:
 1. Disable debug mode in `app.py`
 2. Use environment variables for SECRET_KEY
 3. Use a production WSGI server (Gunicorn, uWSGI)
@@ -161,8 +195,17 @@ Placement-Portal-Application2/
 - `/dashboard` - User dashboard (login required)
 - `/logout` - Logout (login required)
 
-### Admin Routes
-- `/admin` - Admin panel (admin role required)
+### Admin Routes (Phase 2)
+- `/admin` - Admin dashboard with statistics (admin role required)
+- `/admin/companies` - Manage companies with approval (admin role required)
+- `/admin/company/approve/<id>` - Approve company (admin role required)
+- `/admin/company/reject/<id>` - Reject company (admin role required)
+- `/admin/students` - Manage students (admin role required)
+- `/admin/drives` - Manage drives/job postings (admin role required)
+- `/admin/drive/approve/<id>` - Approve drive (admin role required)
+- `/admin/drive/reject/<id>` - Reject drive (admin role required)
+- `/admin/applications` - View all applications (admin role required)
+- `/admin/user/toggle/<id>` - Activate/blacklist user (admin role required)
 
 ### Student Routes
 - `/student/profile` - Student profile (student role required)
@@ -173,7 +216,7 @@ Placement-Portal-Application2/
 ## Database Schema
 
 ### Users Table
-- id, username, email, password_hash, role, created_at
+- id, username, email, password_hash, role, created_at, **is_active, is_approved**
 
 ### Student Profiles Table
 - id, user_id, full_name, roll_number, branch, cgpa, resume_path, phone
@@ -182,7 +225,7 @@ Placement-Portal-Application2/
 - id, user_id, company_name, industry, description, website, contact_person, contact_email, contact_phone
 
 ### Job Postings Table
-- id, company_id, title, description, requirements, salary, location, job_type, posted_at, deadline, is_active
+- id, company_id, title, description, requirements, salary, location, job_type, posted_at, deadline, is_active, **is_approved**
 
 ### Applications Table
 - id, job_id, user_id, status, applied_at, cover_letter
@@ -190,6 +233,8 @@ Placement-Portal-Application2/
 ## Testing
 
 The application has been tested with:
+
+**Phase 1:**
 - ✅ Admin login and logout
 - ✅ Student registration and login
 - ✅ Role-based access control
@@ -198,17 +243,27 @@ The application has been tested with:
 - ✅ Flash messaging
 - ✅ Responsive UI
 
-## Future Enhancements (Phase 2+)
+**Phase 2:**
+- ✅ Admin dashboard with statistics
+- ✅ Company approval/rejection workflow
+- ✅ Drive approval/rejection workflow
+- ✅ Search functionality for all entities
+- ✅ Blacklist/activate user functionality
+- ✅ All management pages rendering correctly
+- ✅ Database schema updates
+
+## Future Enhancements (Phase 3+)
 
 - [ ] Profile editing for students and companies
-- [ ] Job posting creation and management
-- [ ] Job application submission
-- [ ] Application status tracking
+- [ ] Job posting creation and management by companies
+- [ ] Job application submission by students
+- [ ] Application status tracking and updates
 - [ ] File upload for resumes
-- [ ] Email notifications
-- [ ] Advanced search and filtering
-- [ ] Analytics dashboard
-- [ ] Export reports
+- [ ] Email notifications for approvals and applications
+- [ ] Advanced filtering options
+- [ ] Analytics dashboard with charts
+- [ ] Export reports (PDF/CSV)
+- [ ] Bulk operations for admin
 
 ## Contributing
 
@@ -224,4 +279,4 @@ DevK-26
 
 ---
 
-**Note:** This is Phase 1 of the Placement Portal Application. More features will be added in subsequent phases.
+**Note:** Phase 1 & Phase 2 complete. The application now includes full authentication and a comprehensive admin module with statistics, approval systems, search functionality, and user management.
