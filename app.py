@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import or_
+from datetime import datetime
 from config import Config
 from models import db, User, StudentProfile, CompanyProfile, JobPosting, Application
 from decorators import admin_required, student_required, company_required
@@ -381,7 +382,6 @@ def create_drive():
             return render_template('create_drive.html', profile=profile)
         
         try:
-            from datetime import datetime
             deadline = datetime.strptime(deadline_str, '%Y-%m-%d')
             
             # Create new drive
@@ -444,7 +444,6 @@ def edit_drive(drive_id):
         deadline_str = request.form.get('deadline')
         
         try:
-            from datetime import datetime
             drive.deadline = datetime.strptime(deadline_str, '%Y-%m-%d')
             
             db.session.commit()
@@ -545,12 +544,12 @@ def shortlist_applicants(drive_id):
     application_ids = request.form.getlist('application_ids')
     
     if application_ids:
-        count = 0
-        for app_id in application_ids:
-            application = Application.query.get(int(app_id))
-            if application and application.job_id == drive_id:
-                application.status = 'shortlisted'
-                count += 1
+        # Bulk update for better performance
+        app_ids_int = [int(app_id) for app_id in application_ids]
+        count = Application.query.filter(
+            Application.id.in_(app_ids_int),
+            Application.job_id == drive_id
+        ).update({Application.status: 'shortlisted'}, synchronize_session=False)
         
         db.session.commit()
         flash(f'{count} applicant(s) shortlisted successfully!', 'success')
