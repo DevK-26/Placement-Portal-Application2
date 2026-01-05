@@ -15,10 +15,10 @@ def init_database():
         
         if admin:
             print("✓ Admin user already exists.")
-            # Update admin user to have is_active and is_approved fields
-            if not hasattr(admin, 'is_active') or admin.is_active is None:
+            # Update admin user to have is_active and is_approved fields if they are None
+            if admin.is_active is None:
                 admin.is_active = True
-            if not hasattr(admin, 'is_approved') or admin.is_approved is None:
+            if admin.is_approved is None:
                 admin.is_approved = True
             db.session.commit()
         else:

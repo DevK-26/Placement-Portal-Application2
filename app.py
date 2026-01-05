@@ -278,11 +278,13 @@ def toggle_user(user_id):
     status = 'activated' if user.is_active else 'deactivated'
     flash(f'User {user.username} {status} successfully!', 'success')
     
-    # Redirect to appropriate page
+    # Redirect to appropriate page based on role
     if user.role == 'company':
         return redirect(url_for('admin_companies'))
-    else:
+    elif user.role == 'student':
         return redirect(url_for('admin_students'))
+    else:
+        return redirect(url_for('admin_panel'))
 
 
 @app.route('/student/profile')
