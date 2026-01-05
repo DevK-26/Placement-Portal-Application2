@@ -14,6 +14,8 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(20), nullable=False)  # admin, student, company
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    is_active = db.Column(db.Boolean, default=True)  # For blacklist/deactivate
+    is_approved = db.Column(db.Boolean, default=False)  # For company approval
     
     # Relationships
     student_profile = db.relationship('StudentProfile', backref='user', uselist=False, cascade='all, delete-orphan')
@@ -60,7 +62,7 @@ class CompanyProfile(db.Model):
         return f'<CompanyProfile {self.company_name}>'
 
 class JobPosting(db.Model):
-    """Job posting by companies"""
+    """Job posting by companies (also called drives)"""
     __tablename__ = 'job_postings'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -74,6 +76,7 @@ class JobPosting(db.Model):
     posted_at = db.Column(db.DateTime, default=datetime.utcnow)
     deadline = db.Column(db.DateTime, nullable=False)
     is_active = db.Column(db.Boolean, default=True)
+    is_approved = db.Column(db.Boolean, default=False)  # Admin approval for drives
     
     # Relationships
     applications = db.relationship('Application', backref='job', cascade='all, delete-orphan')

@@ -15,6 +15,12 @@ def init_database():
         
         if admin:
             print("✓ Admin user already exists.")
+            # Update admin user to have is_active and is_approved fields
+            if not hasattr(admin, 'is_active') or admin.is_active is None:
+                admin.is_active = True
+            if not hasattr(admin, 'is_approved') or admin.is_approved is None:
+                admin.is_approved = True
+            db.session.commit()
         else:
             # Create default admin user
             print("Creating default admin user...")
@@ -22,7 +28,9 @@ def init_database():
                 username='admin',
                 email='admin@placementportal.com',
                 password_hash=generate_password_hash('admin123'),
-                role='admin'
+                role='admin',
+                is_active=True,
+                is_approved=True
             )
             db.session.add(admin_user)
             db.session.commit()

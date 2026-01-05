@@ -1,8 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy import or_
 from config import Config
-from models import db, User, StudentProfile, CompanyProfile
+from models import db, User, StudentProfile, CompanyProfile, JobPosting, Application
 from decorators import admin_required, student_required, company_required
 
 app = Flask(__name__)
@@ -125,9 +126,164 @@ def dashboard():
 @app.route('/admin')
 @admin_required
 def admin_panel():
-    """Admin panel - admin only"""
-    users = User.query.all()
-    return render_template('admin.html', users=users)
+    """Admin panel - admin only with statistics"""
+    # Get statistics
+    total_users = User.query.count()
+    total_students = User.query.filter_by(role='student').count()
+    total_companies = User.query.filter_by(role='company').count()
+    approved_companies = User.query.filter_by(role='company', is_approved=True).count()
+    pending_companies = User.query.filter_by(role='company', is_approved=False).count()
+    
+    total_drives = JobPosting.query.count()
+    approved_drives = JobPosting.query.filter_by(is_approved=True).count()
+    pending_drives = JobPosting.query.filter_by(is_approved=False).count()
+    
+    total_applications = Application.query.count()
+    
+    stats = {
+        'total_users': total_users,
+        'total_students': total_students,
+        'total_companies': total_companies,
+        'approved_companies': approved_companies,
+        'pending_companies': pending_companies,
+        'total_drives': total_drives,
+        'approved_drives': approved_drives,
+        'pending_drives': pending_drives,
+        'total_applications': total_applications
+    }
+    
+    return render_template('admin.html', stats=stats)
+
+@app.route('/admin/companies')
+@admin_required
+def admin_companies():
+    """View all companies"""
+    search = request.args.get('search', '')
+    if search:
+        companies = CompanyProfile.query.join(User).filter(
+            or_(
+                CompanyProfile.company_name.ilike(f'%{search}%'),
+                CompanyProfile.industry.ilike(f'%{search}%'),
+                User.email.ilike(f'%{search}%')
+            )
+        ).all()
+    else:
+        companies = CompanyProfile.query.all()
+    
+    return render_template('admin_companies.html', companies=companies, search=search)
+
+@app.route('/admin/company/approve/<int:user_id>')
+@admin_required
+def approve_company(user_id):
+    """Approve a company"""
+    user = User.query.get_or_404(user_id)
+    if user.role != 'company':
+        flash('Invalid user type.', 'danger')
+        return redirect(url_for('admin_companies'))
+    
+    user.is_approved = True
+    db.session.commit()
+    flash(f'Company {user.username} approved successfully!', 'success')
+    return redirect(url_for('admin_companies'))
+
+@app.route('/admin/company/reject/<int:user_id>')
+@admin_required
+def reject_company(user_id):
+    """Reject a company"""
+    user = User.query.get_or_404(user_id)
+    if user.role != 'company':
+        flash('Invalid user type.', 'danger')
+        return redirect(url_for('admin_companies'))
+    
+    user.is_approved = False
+    db.session.commit()
+    flash(f'Company {user.username} rejected.', 'warning')
+    return redirect(url_for('admin_companies'))
+
+@app.route('/admin/students')
+@admin_required
+def admin_students():
+    """View all students"""
+    search = request.args.get('search', '')
+    if search:
+        students = StudentProfile.query.join(User).filter(
+            or_(
+                StudentProfile.full_name.ilike(f'%{search}%'),
+                StudentProfile.roll_number.ilike(f'%{search}%'),
+                StudentProfile.branch.ilike(f'%{search}%'),
+                User.email.ilike(f'%{search}%')
+            )
+        ).all()
+    else:
+        students = StudentProfile.query.all()
+    
+    return render_template('admin_students.html', students=students, search=search)
+
+@app.route('/admin/drives')
+@admin_required
+def admin_drives():
+    """View all drives (job postings)"""
+    search = request.args.get('search', '')
+    if search:
+        drives = JobPosting.query.join(CompanyProfile).filter(
+            or_(
+                JobPosting.title.ilike(f'%{search}%'),
+                JobPosting.location.ilike(f'%{search}%'),
+                CompanyProfile.company_name.ilike(f'%{search}%')
+            )
+        ).all()
+    else:
+        drives = JobPosting.query.all()
+    
+    return render_template('admin_drives.html', drives=drives, search=search)
+
+@app.route('/admin/drive/approve/<int:drive_id>')
+@admin_required
+def approve_drive(drive_id):
+    """Approve a drive"""
+    drive = JobPosting.query.get_or_404(drive_id)
+    drive.is_approved = True
+    db.session.commit()
+    flash(f'Drive "{drive.title}" approved successfully!', 'success')
+    return redirect(url_for('admin_drives'))
+
+@app.route('/admin/drive/reject/<int:drive_id>')
+@admin_required
+def reject_drive(drive_id):
+    """Reject a drive"""
+    drive = JobPosting.query.get_or_404(drive_id)
+    drive.is_approved = False
+    db.session.commit()
+    flash(f'Drive "{drive.title}" rejected.', 'warning')
+    return redirect(url_for('admin_drives'))
+
+@app.route('/admin/applications')
+@admin_required
+def admin_applications():
+    """View all applications"""
+    applications = Application.query.all()
+    return render_template('admin_applications.html', applications=applications)
+
+@app.route('/admin/user/toggle/<int:user_id>')
+@admin_required
+def toggle_user(user_id):
+    """Activate/Deactivate (blacklist) a user"""
+    user = User.query.get_or_404(user_id)
+    if user.role == 'admin':
+        flash('Cannot deactivate admin users.', 'danger')
+        return redirect(url_for('admin_panel'))
+    
+    user.is_active = not user.is_active
+    db.session.commit()
+    status = 'activated' if user.is_active else 'deactivated'
+    flash(f'User {user.username} {status} successfully!', 'success')
+    
+    # Redirect to appropriate page
+    if user.role == 'company':
+        return redirect(url_for('admin_companies'))
+    else:
+        return redirect(url_for('admin_students'))
+
 
 @app.route('/student/profile')
 @student_required
