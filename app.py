@@ -295,6 +295,238 @@ def student_profile():
     profile = StudentProfile.query.filter_by(user_id=current_user.id).first()
     return render_template('student_profile.html', profile=profile)
 
+@app.route('/student/dashboard')
+@student_required
+def student_dashboard():
+    """Student dashboard with statistics"""
+    profile = StudentProfile.query.filter_by(user_id=current_user.id).first()
+    
+    if profile:
+        # Get student's applications statistics
+        total_applications = Application.query.filter_by(user_id=current_user.id).count()
+        pending_applications = Application.query.filter_by(user_id=current_user.id, status='pending').count()
+        shortlisted_applications = Application.query.filter_by(user_id=current_user.id, status='shortlisted').count()
+        accepted_applications = Application.query.filter_by(user_id=current_user.id, status='accepted').count()
+        
+        # Get available drives count
+        available_drives = JobPosting.query.filter_by(is_active=True, is_approved=True).filter(
+            JobPosting.deadline >= datetime.now()
+        ).count()
+        
+        stats = {
+            'total_applications': total_applications,
+            'pending_applications': pending_applications,
+            'shortlisted_applications': shortlisted_applications,
+            'accepted_applications': accepted_applications,
+            'available_drives': available_drives
+        }
+    else:
+        stats = {
+            'total_applications': 0,
+            'pending_applications': 0,
+            'shortlisted_applications': 0,
+            'accepted_applications': 0,
+            'available_drives': 0
+        }
+    
+    return render_template('student_dashboard.html', profile=profile, stats=stats)
+
+@app.route('/student/profile/edit', methods=['GET', 'POST'])
+@student_required
+def edit_student_profile():
+    """Edit student profile"""
+    profile = StudentProfile.query.filter_by(user_id=current_user.id).first()
+    
+    if request.method == 'POST':
+        full_name = request.form.get('full_name')
+        roll_number = request.form.get('roll_number')
+        branch = request.form.get('branch')
+        cgpa = request.form.get('cgpa')
+        phone = request.form.get('phone')
+        
+        if not all([full_name, roll_number, branch, cgpa, phone]):
+            flash('All fields are required.', 'danger')
+            return render_template('edit_student_profile.html', profile=profile)
+        
+        try:
+            cgpa_float = float(cgpa)
+            if cgpa_float < 0 or cgpa_float > 10:
+                flash('CGPA must be between 0 and 10.', 'danger')
+                return render_template('edit_student_profile.html', profile=profile)
+        except ValueError:
+            flash('Invalid CGPA value.', 'danger')
+            return render_template('edit_student_profile.html', profile=profile)
+        
+        if profile:
+            # Update existing profile
+            profile.full_name = full_name
+            profile.roll_number = roll_number
+            profile.branch = branch
+            profile.cgpa = cgpa_float
+            profile.phone = phone
+        else:
+            # Create new profile
+            profile = StudentProfile(
+                user_id=current_user.id,
+                full_name=full_name,
+                roll_number=roll_number,
+                branch=branch,
+                cgpa=cgpa_float,
+                phone=phone
+            )
+            db.session.add(profile)
+        
+        db.session.commit()
+        flash('Profile updated successfully!', 'success')
+        return redirect(url_for('student_dashboard'))
+    
+    return render_template('edit_student_profile.html', profile=profile)
+
+@app.route('/student/drives')
+@student_required
+def browse_drives():
+    """Browse available drives with filters"""
+    profile = StudentProfile.query.filter_by(user_id=current_user.id).first()
+    
+    # Get filter parameters
+    search = request.args.get('search', '')
+    job_type = request.args.get('job_type', '')
+    location = request.args.get('location', '')
+    
+    # Base query: active, approved drives with deadline not passed
+    query = JobPosting.query.filter_by(is_active=True, is_approved=True).filter(
+        JobPosting.deadline >= datetime.now()
+    )
+    
+    # Apply filters
+    if search:
+        query = query.join(CompanyProfile).filter(
+            or_(
+                JobPosting.title.ilike(f'%{search}%'),
+                JobPosting.description.ilike(f'%{search}%'),
+                CompanyProfile.company_name.ilike(f'%{search}%')
+            )
+        )
+    
+    if job_type:
+        query = query.filter(JobPosting.job_type == job_type)
+    
+    if location:
+        query = query.filter(JobPosting.location.ilike(f'%{location}%'))
+    
+    drives = query.order_by(JobPosting.posted_at.desc()).all()
+    
+    # Get student's applied drive IDs
+    applied_drive_ids = [app.job_id for app in Application.query.filter_by(user_id=current_user.id).all()]
+    
+    return render_template('browse_drives.html', profile=profile, drives=drives, 
+                         applied_drive_ids=applied_drive_ids, search=search, 
+                         job_type=job_type, location=location)
+
+@app.route('/student/drive/<int:drive_id>')
+@student_required
+def view_drive_details(drive_id):
+    """View detailed information about a drive"""
+    profile = StudentProfile.query.filter_by(user_id=current_user.id).first()
+    drive = JobPosting.query.get_or_404(drive_id)
+    
+    # Check if student has already applied
+    existing_application = Application.query.filter_by(
+        user_id=current_user.id,
+        job_id=drive_id
+    ).first()
+    
+    return render_template('drive_details.html', profile=profile, drive=drive, 
+                         existing_application=existing_application)
+
+@app.route('/student/drive/<int:drive_id>/apply', methods=['GET', 'POST'])
+@student_required
+def apply_to_drive(drive_id):
+    """Apply to a placement drive"""
+    profile = StudentProfile.query.filter_by(user_id=current_user.id).first()
+    
+    if not profile:
+        flash('Please complete your profile before applying to drives.', 'warning')
+        return redirect(url_for('edit_student_profile'))
+    
+    drive = JobPosting.query.get_or_404(drive_id)
+    
+    # Check if drive is still active and approved
+    if not drive.is_active or not drive.is_approved:
+        flash('This drive is not currently accepting applications.', 'danger')
+        return redirect(url_for('browse_drives'))
+    
+    # Check if deadline has passed
+    if drive.deadline < datetime.now():
+        flash('The application deadline for this drive has passed.', 'danger')
+        return redirect(url_for('browse_drives'))
+    
+    # Check if already applied
+    existing_application = Application.query.filter_by(
+        user_id=current_user.id,
+        job_id=drive_id
+    ).first()
+    
+    if existing_application:
+        flash('You have already applied to this drive.', 'warning')
+        return redirect(url_for('my_applications'))
+    
+    if request.method == 'POST':
+        cover_letter = request.form.get('cover_letter', '')
+        
+        # Create new application
+        new_application = Application(
+            job_id=drive_id,
+            user_id=current_user.id,
+            status='pending',
+            cover_letter=cover_letter
+        )
+        
+        db.session.add(new_application)
+        db.session.commit()
+        
+        flash('Application submitted successfully!', 'success')
+        return redirect(url_for('my_applications'))
+    
+    return render_template('apply_drive.html', profile=profile, drive=drive)
+
+@app.route('/student/applications')
+@student_required
+def my_applications():
+    """View all applications"""
+    profile = StudentProfile.query.filter_by(user_id=current_user.id).first()
+    applications = Application.query.filter_by(user_id=current_user.id).order_by(
+        Application.applied_at.desc()
+    ).all()
+    
+    return render_template('my_applications.html', profile=profile, applications=applications)
+
+@app.route('/student/application/<int:application_id>')
+@student_required
+def view_application(application_id):
+    """View detailed application status"""
+    profile = StudentProfile.query.filter_by(user_id=current_user.id).first()
+    application = Application.query.get_or_404(application_id)
+    
+    # Verify ownership
+    if application.user_id != current_user.id:
+        flash('You do not have permission to view this application.', 'danger')
+        return redirect(url_for('my_applications'))
+    
+    return render_template('application_details.html', profile=profile, application=application)
+
+@app.route('/student/placement-history')
+@student_required
+def placement_history():
+    """View placement history (accepted applications)"""
+    profile = StudentProfile.query.filter_by(user_id=current_user.id).first()
+    placements = Application.query.filter_by(
+        user_id=current_user.id,
+        status='accepted'
+    ).order_by(Application.applied_at.desc()).all()
+    
+    return render_template('placement_history.html', profile=profile, placements=placements)
+
 @app.route('/company/profile')
 @company_required
 def company_profile():

@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard - Placement Portal{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="bi bi-mortarboard-fill"></i> Student Dashboard
+            </h1>
+            
+            {% if not profile %}
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle"></i> Please complete your profile to start applying to drives.
+                <a href="{{ url_for('edit_student_profile') }}" class="btn btn-sm btn-primary ms-3">Complete Profile</a>
+            </div>
+            {% endif %}
+            
+            <!-- Statistics Cards -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-3">
+                    <div class="card shadow-sm text-center">
+                        <div class="card-body">
+                            <i class="bi bi-briefcase-fill text-primary" style="font-size: 2rem;"></i>
+                            <h3 class="mt-2">{{ stats.available_drives }}</h3>
+                            <p class="text-muted mb-0">Available Drives</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="card shadow-sm text-center">
+                        <div class="card-body">
+                            <i class="bi bi-file-earmark-text-fill text-info" style="font-size: 2rem;"></i>
+                            <h3 class="mt-2">{{ stats.total_applications }}</h3>
+                            <p class="text-muted mb-0">Total Applications</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="card shadow-sm text-center">
+                        <div class="card-body">
+                            <i class="bi bi-star-fill text-warning" style="font-size: 2rem;"></i>
+                            <h3 class="mt-2">{{ stats.shortlisted_applications }}</h3>
+                            <p class="text-muted mb-0">Shortlisted</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3">
+                    <div class="card shadow-sm text-center">
+                        <div class="card-body">
+                            <i class="bi bi-check-circle-fill text-success" style="font-size: 2rem;"></i>
+                            <h3 class="mt-2">{{ stats.accepted_applications }}</h3>
+                            <p class="text-muted mb-0">Accepted</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pending Applications -->
+            {% if stats.pending_applications > 0 %}
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-hourglass-split"></i> Pending Applications
+                            </h5>
+                            <h2 class="text-info">{{ stats.pending_applications }}</h2>
+                            <p class="text-muted">Waiting for company review</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-briefcase"></i> Available Opportunities
+                            </h5>
+                            <h2 class="text-primary">{{ stats.available_drives }}</h2>
+                            <p class="text-muted">New drives you can apply to</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Quick Actions -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('browse_drives') }}" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-search"></i><br>
+                                Browse Drives
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('my_applications') }}" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-file-earmark-text"></i><br>
+                                My Applications
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('edit_student_profile') }}" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-person-fill"></i><br>
+                                Edit Profile
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{{ url_for('placement_history') }}" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-clock-history"></i><br>
+                                Placement History
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
